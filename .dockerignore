@@ -1,0 +1,66 @@
+# VCS
+.git
+.gitignore
+**/.git
+**/.gitignore
+
+# Environment
+.env
+venv/
+.env.*
+!.env.example
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Python
+**/__pycache__
+**/*.py[cod]
+**/*.pyc
+**/.mypy_cache
+**/.pytest_cache
+**/.ruff_cache
+env
+venv
+.venv
+
+# Django
+backend/db.sqlite3
+backend/db.sqlite3-journal
+backend/media
+backend/staticfiles
+backend/static
+
+# Node / Vite
+node_modules
+**/node_modules
+frontend/dist
+frontend/.vite
+frontend/.cache
+frontend/coverage
+.eslintcache
+.turbo
+.parcel-cache
+
+# Coverage / test artifacts
+coverage
+**/coverage
+
+# Editors / IDE
+.idea
+.vscode
+
+# Docker / Compose / CI
+docker-compose.yml
+docker-compose.override.yml
+README.md
+docs
+.github
+.gitlab-ci.yml
+
+

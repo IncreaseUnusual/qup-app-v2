@@ -1,0 +1,9 @@
+asgiref==3.9.1
+Django==5.2.6
+django-cors-headers==4.8.0
+djangorestframework==3.16.1
+sqlparse==0.5.3
+psycopg2-binary==2.9.9
+python-dotenv
+gunicorn==21.2.0
+whitenoise==6.7.0

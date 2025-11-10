@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for queue list */
+.queue-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.queue-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.queue-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.queue-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
