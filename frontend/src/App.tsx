@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { authApi, queueApi } from './api';
 import { QueueEntry, QueueStatus } from './types';
+import { connectQueue } from './ws';
+import AnimatedMath from './AnimatedMath';
 
 function App() {
   const [queue, setQueue] = useState<QueueEntry[]>([]);
@@ -9,6 +11,7 @@ function App() {
   const [isAdmin, setIsAdmin] = useState<boolean>(authApi.isLoggedIn());
   const [loginState, setLoginState] = useState({ username: '', password: '' });
   const [lastEstimate, setLastEstimate] = useState<number | null>(null);
+  const [optOverlay, setOptOverlay] = useState<{ open: boolean; result: any | null }>({ open: false, result: null });
   const [formData, setFormData] = useState({
     name: '',
     party_size: 2,
@@ -53,7 +56,15 @@ function App() {
     }
     fetchQueue();
     const interval = setInterval(fetchQueue, 3000);
-    return () => clearInterval(interval);
+    // Subscribe to websocket push updates to refresh faster and reduce waiting
+    const disconnect = connectQueue(() => {
+      // On any server event, refetch latest queue
+      fetchQueue();
+    });
+    return () => {
+      clearInterval(interval);
+      disconnect();
+    };
   }, [isAdmin]);
 
   // Handle form submission
@@ -417,11 +428,72 @@ function App() {
                     )}
                   </div>
                 ))}
+                {isAdmin && (
+                  <div className="sticky bottom-0 bg-white pt-4">
+                    <button
+                      onClick={async () => {
+                        try {
+                          const result = await queueApi.optimize();
+                          setOptOverlay({ open: true, result });
+                        } catch (e) {
+                          console.error(e);
+                          setError('Optimization failed');
+                        }
+                      }}
+                      className="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition shadow"
+                    >
+                      Optimize Seating (Bin Packing)
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </section>
         </div>
       </div>
+      {optOverlay.open && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-[min(92vw,900px)] p-6 relative overflow-hidden">
+            <button
+              onClick={() => setOptOverlay({ open: false, result: null })}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">Queue Optimized</h3>
+            <p className="text-gray-600 mb-4">
+              First‑Fit Decreasing with Best‑Fit selection to minimize wasted seats.
+            </p>
+            {/* Animated math/graph visualization */}
+            <div className="relative h-56 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl overflow-hidden mb-4">
+              <AnimatedMath />
+            </div>
+            {/* Compact, static worked example (no scrolling needed) */}
+            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-100">
+              <div className="font-semibold text-indigo-900 mb-2">How the math works (example)</div>
+              <div className="text-sm text-indigo-900/90 space-y-2">
+                <p>
+                  Objective: minimize total wasted seats
+                  {' '}<span className="font-mono">Σ (capacity - size)</span>.
+                </p>
+                <p className="font-mono bg-white rounded px-2 py-1 inline-block">
+                  Tables = [2, 4, 4, 6], Parties = [5, 4, 3, 2]
+                </p>
+                <ol className="list-decimal ml-5 space-y-1">
+                  <li>5 → choose 6 → waste = 1</li>
+                  <li>4 → choose 4 → waste = 0</li>
+                  <li>3 → choose 4 → waste = 1</li>
+                  <li>2 → choose 2 → waste = 0</li>
+                </ol>
+                <p className="mt-1">
+                  Total wasted seats = <span className="font-semibold">2</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -63,6 +63,12 @@ export const queueApi = {
   remove: async (id: number): Promise<void> => {
     await api.delete(`/queue/${id}/delete/`);
   },
+
+  // Compute seating optimization plan
+  optimize: async (tables?: Array<{ id?: number; capacity: number }>): Promise<any> => {
+    const response = await api.post('/queue/optimize/', tables ? { tables } : {});
+    return response.data;
+  },
 };
 
 export const authApi = {
