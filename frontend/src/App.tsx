@@ -10,6 +10,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(authApi.isLoggedIn());
   const [loginState, setLoginState] = useState({ username: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [lastEstimate, setLastEstimate] = useState<number | null>(null);
   const [optOverlay, setOptOverlay] = useState<{ open: boolean; result: any | null }>({ open: false, result: null });
   const [formData, setFormData] = useState({
@@ -19,9 +21,9 @@ function App() {
   });
 
   // Fetch queue data
-  const fetchQueue = async () => {
+  const fetchQueue = async (showErrors = true) => {
     try {
-      setError(null);
+      if (showErrors) setError(null);
       const data = await queueApi.getAll();
       // Sort by joined_at, with waiting status first
       const sorted = data.sort((a, b) => {
@@ -40,31 +42,31 @@ function App() {
       });
       setQueue(withEstimates);
     } catch (err) {
-      setError('Failed to fetch queue. Make sure the backend is running.');
-      console.error(err);
+      if (showErrors) {
+        setError('Failed to fetch queue. Make sure the backend is running.');
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch and poll only when admin
+  // Fetch queue data - always fetch for waiting count, but only show full queue to admin
   useEffect(() => {
-    if (!isAdmin) {
-      setQueue([]);
-      setLoading(false);
-      return;
+    // Always fetch queue to get waiting count (even for non-admin)
+    fetchQueue(false); // Don't show errors for non-admin users
+    if (isAdmin) {
+      const interval = setInterval(() => fetchQueue(true), 3000);
+      // Subscribe to websocket push updates to refresh faster and reduce waiting
+      const disconnect = connectQueue(() => {
+        // On any server event, refetch latest queue
+        fetchQueue(true);
+      });
+      return () => {
+        clearInterval(interval);
+        disconnect();
+      };
     }
-    fetchQueue();
-    const interval = setInterval(fetchQueue, 3000);
-    // Subscribe to websocket push updates to refresh faster and reduce waiting
-    const disconnect = connectQueue(() => {
-      // On any server event, refetch latest queue
-      fetchQueue();
-    });
-    return () => {
-      clearInterval(interval);
-      disconnect();
-    };
   }, [isAdmin]);
 
   // Handle form submission
@@ -76,6 +78,7 @@ function App() {
     }
 
     try {
+      setIsSubmitting(true);
       setError(null);
       const created = await queueApi.create({
         name: formData.name,
@@ -88,12 +91,16 @@ function App() {
       } else {
         setLastEstimate(null);
       }
+      // Refresh queue to update waiting count
+      await fetchQueue(false);
       if (isAdmin) {
-        fetchQueue();
+        fetchQueue(true);
       }
     } catch (err) {
       setError('Failed to add customer to queue');
       console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -124,13 +131,18 @@ function App() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setIsLoggingIn(true);
       setError(null);
       await authApi.login(loginState.username, loginState.password);
       setIsAdmin(true);
       setLoginState({ username: '', password: '' });
+      // Refresh queue after login
+      await fetchQueue(true);
     } catch (err) {
       setError('Login failed. Check credentials.');
       console.error(err);
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -216,9 +228,10 @@ function App() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded"
+                    disabled={isLoggingIn}
+                    className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 disabled:cursor-not-allowed text-white font-semibold py-2 rounded transition"
                   >
-                    Login
+                    {isLoggingIn ? 'Logging in...' : 'Login'}
                   </button>
                 </form>
               </details>
@@ -308,9 +321,10 @@ function App() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 disabled:from-purple-400 disabled:to-indigo-400 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg hover:from-purple-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all duration-200 shadow-lg"
               >
-                Add to Queue
+                {isSubmitting ? 'Adding...' : 'Add to Queue'}
               </button>
             </form>
           </section>
