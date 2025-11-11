@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   // Allow serving the app under a subpath like /qup in production
-  base: process.env.VITE_BASE_PATH || '/',
+  base: '/qup-app/',
   server: {
     // Ensure dev server is reachable when running frontend in isolation
     host: true, // 0.0.0.0
