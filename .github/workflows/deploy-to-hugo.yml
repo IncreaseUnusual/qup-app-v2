@@ -31,11 +31,11 @@ jobs:
           ref: gh-pages
           token: ${{ secrets.HUGO_REPO_TOKEN }}
 
-      - name: Copy build to Hugo /qup-app
+      - name: Copy build to Hugo static/qup-app
         run: |
-          rm -rf hugo/qup-app
-          mkdir -p hugo/qup-app
-          cp -r frontend/dist/* hugo/qup-app/
+          rm -rf hugo/static/qup-app
+          mkdir -p hugo/static/qup-app
+          cp -r frontend/dist/* hugo/static/qup-app/
 
       - name: Commit and push to Hugo
         run: |
