@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from dotenv import load_dotenv
 from pathlib import Path
 import os
+import typing as t
+try:
+    import dj_database_url  # type: ignore
+except Exception:
+    dj_database_url = None  # Will be available in deployed container per requirements
 
 load_dotenv() 
 
@@ -77,18 +82,27 @@ ASGI_APPLICATION = 'config.asgi.application'
 
 
 # Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get("DB_NAME"),
-        'USER': os.environ.get("DB_USER"),
-        'PASSWORD': os.environ.get("DB_PASSWORD"),
-        'HOST': os.environ.get("DB_HOST"),
-        'PORT': os.environ.get("DB_PORT")
+# Prefer a single DATABASE_URL (Railway/Heroku-style). Fallback to individual envs.
+DATABASES: t.Dict[str, t.Dict[str, t.Any]]
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    if dj_database_url is None:
+        raise RuntimeError("dj-database-url must be installed to parse DATABASE_URL")
+    DATABASES = {
+        'default': dj_database_url.parse(database_url, conn_max_age=600, ssl_require=not DEBUG)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get("DB_NAME"),
+            'USER': os.environ.get("DB_USER"),
+            'PASSWORD': os.environ.get("DB_PASSWORD"),
+            'HOST': os.environ.get("DB_HOST"),
+            'PORT': os.environ.get("DB_PORT"),
+            'CONN_MAX_AGE': 600,
+        }
+    }
 
 
 # Password validation
@@ -175,12 +189,17 @@ REST_FRAMEWORK = {
 }
 
 # Channels / Redis
+redis_url = os.environ.get("REDIS_URL")
+if redis_url:
+    redis_hosts = [redis_url]
+else:
+    redis_hosts = [(os.environ.get("REDIS_HOST", "redis"), int(os.environ.get("REDIS_PORT", "6379")))]
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            # In Docker, the service will be named "redis"
-            "hosts": [(os.environ.get("REDIS_HOST", "redis"), int(os.environ.get("REDIS_PORT", "6379")))],
+            "hosts": redis_hosts,
         },
     },
 }
