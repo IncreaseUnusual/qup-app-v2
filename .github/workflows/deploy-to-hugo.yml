@@ -22,3 +22,26 @@ jobs:
         run: |
           npm install
           npm run build
+
+      - name: Checkout Hugo repo
+        uses: actions/checkout@v3
+        with:
+          repository: IncreaseUnusual/danison-blog
+          path: hugo
+          ref: gh-pages
+          token: ${{ secrets.HUGO_PAT }}
+
+      - name: Copy build to Hugo /qup-app
+        run: |
+          rm -rf hugo/qup-app
+          mkdir -p hugo/qup-app
+          cp -r frontend/dist/* hugo/qup-app/
+
+      - name: Commit and push to Hugo
+        run: |
+          cd hugo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Auto-deploy React app to /qup-app [CI]" || echo "Nothing to commit"
+          git push origin gh-pages
