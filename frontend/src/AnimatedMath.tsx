@@ -27,9 +27,12 @@ export default function AnimatedMath() {
     let raf = 0;
 
     function resize() {
+      // Guard again inside the callback to satisfy TS in nested scopes
+      if (!canvas || !ctx) return;
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width * devicePixelRatio;
       canvas.height = rect.height * devicePixelRatio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(devicePixelRatio, devicePixelRatio);
     }
     resize();
@@ -37,6 +40,7 @@ export default function AnimatedMath() {
     ro.observe(canvas);
 
     function loop() {
+      if (!canvas || !ctx) return;
       const { width, height } = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, width, height);
 

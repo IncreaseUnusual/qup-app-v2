@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authApi, queueApi } from './api';
-import { QueueEntry, QueueStatus } from './types';
+import type { QueueEntry, QueueStatus } from './types';
 import { connectQueue } from './ws';
 import AnimatedMath from './AnimatedMath';
 

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { QueueEntry, QueueStatus } from './types';
+import type { QueueEntry, QueueStatus } from './types';
 
 // Configure API base via Vite envs:
 // - Dev:  VITE_API_BASE_URL=http://localhost:8000/api

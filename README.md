@@ -1,69 +1,63 @@
-# React + TypeScript + Vite
+# Qup Backend API
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the backend API for the Qup virtual queue management application. It is built using Django and Django REST Framework, and is deployed on [Railway](https://railway.app/).
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- API endpoints for managing queue items
+- Token-based authentication (JWT)
+- PostgreSQL for data storage
+- Redis for caching and real-time features (e.g. WebSocket support)
+- Dockerized for containerized deployment
 
-## Expanding the ESLint configuration
+## Live API
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Base URL: `https://qup-app-v2-production.up.railway.app/api/`
+- Example endpoint: `https://qup-app-v2-production.up.railway.app/api/queue/`
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Setup
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+1. Clone the repository:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+   ```bash
+   git clone https://github.com/your-username/qup-backend.git
+   cd qup-backend
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Create a `.env` file and define the following variables:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+   ```
+   SECRET_KEY=your-secret-key
+   DEBUG=False
+   DB_NAME=...
+   DB_USER=...
+   DB_PASSWORD=...
+   DB_HOST=...
+   DB_PORT=5432
+   REDIS_HOST=...
+   REDIS_PORT=6379
+   ```
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3. Build and run with Docker:
+
+   ```bash
+   docker-compose up --build
+   ```
+
+4. Apply migrations:
+
+   ```bash
+   docker exec -it <backend-container-name> py  thon manage.py migrate
+   ```
+
+## Deployment
+
+The project is deployed to Railway with:
+
+- PostgreSQL and Redis provisioned via Railway plugins
+- Environment variables configured in Railway Dashboard
+- Automatic deployment via GitHub integration
+
+## License
+
+This project is licensed under the MIT License.
