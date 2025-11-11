@@ -1,6 +1,6 @@
 export function connectQueue(onMessage: (data: any) => void) {
   const url =
-    (import.meta.env.VITE_WS_URL as string) || 'ws://localhost:8000/ws/queue/';
+    (import.meta.env.VITE_WS_URL as string) || 'wss://qup-app-v2-production.up.railway.app/ws/queue/';
 
   let ws: WebSocket | null = null;
   let retryMs = 1000;

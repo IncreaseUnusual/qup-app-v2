@@ -9,20 +9,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the frontend project
       - name: Checkout frontend repo
         uses: actions/checkout@v3
 
+      # Step 2: Setup Node
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
+      # Step 3: Install dependencies & build React
       - name: Install dependencies and build
         working-directory: frontend
         run: |
           npm install
           npm run build
 
+      # Step 4: Checkout Hugo gh-pages branch
       - name: Checkout Hugo repo
         uses: actions/checkout@v3
         with:
@@ -31,11 +35,11 @@ jobs:
           ref: gh-pages
           token: ${{ secrets.HUGO_REPO_TOKEN }}
 
-      - name: Copy build to Hugo static/qup-app
+      - name: Copy build to Hugo /qup-app
         run: |
-          rm -rf hugo/static/qup-app
-          mkdir -p hugo/static/qup-app
-          cp -r frontend/dist/* hugo/static/qup-app/
+          rm -rf hugo/qup-app
+          mkdir -p hugo/qup-app
+          cp -r frontend/dist/* hugo/qup-app/
 
       - name: Commit and push to Hugo
         run: |

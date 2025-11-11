@@ -2,9 +2,7 @@ import axios from 'axios';
 import type { QueueEntry, QueueStatus } from './types';
 
 // Configure API base via Vite envs:
-// - Dev:  VITE_API_BASE_URL=http://localhost:8000/api
-// - Prod: VITE_API_BASE_URL=https://danison.dev/qup/api  (or https://api.danison.dev/qup/api)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = "https://qup-app-v2-production.up.railway.app/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
