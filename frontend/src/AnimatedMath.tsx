@@ -25,6 +25,7 @@ export default function AnimatedMath() {
     if (!ctx) return;
 
     let raf = 0;
+    //push
 
     function resize() {
       // Guard again inside the callback to satisfy TS in nested scopes
